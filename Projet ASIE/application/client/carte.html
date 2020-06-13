@@ -1,0 +1,132 @@
+<!DOCTYPE html>  
+
+<script src="leaflet.js"> // Bibliothèque Leaflet : http://leafletjs.com/ </script>
+
+<title>Pays d'Océanie et d'Amérique du Sud</title>
+<link rel="stylesheet" type="text/css" href="leaflet.css" /> 
+<link rel="stylesheet" type="text/css" href="style2.css"/>
+
+<meta charset="utf-8">
+  
+<!-- Récupération de la liste des lieux insolites au chargement de la page -->
+<body onload="load_data();">
+
+  <h1>PAKHO LA GRANDE POUGNE</h1>
+  <div>
+
+<select name="selection_pays" id="selection_pays" onchange="choix_pays()">
+ <option disabled selected value="">Choix du pays</option>
+</select>  
+
+  <!-- Zone pour l'insertion de la carte OpenStreetMap via Leaflet -->
+  <div id="map" style="margin-bottom:1.33em"></div>  
+  <div id="main" style=""></div>
+
+  <!-- Zone pour l'affichage dynamique des descriptions -->
+  <p id="description"></p>
+  
+  </div>
+ 
+<script>
+
+// Création d'une carte dans la balise div "map",
+// et position de la vue sur un point donné et un niveau de zoom
+var map = L.map('map').setView([-20,210],2);
+
+// Ajout d'une couche de dalles OpenStreetMap
+L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+     }).addTo(map);
+
+// Fonction appelée au chargement de la page
+function load_data () {
+
+  // objet pour l'envoi d'une requête Ajax
+  var xhr = new XMLHttpRequest();
+
+  // fonction appelée lorsque la réponse à la requête (liste des pays) sera arrivée
+  xhr.onload = function() {
+    var select = window.selection_pays;
+
+    // transformation des données renvoyées par le serveur
+    // responseText est du type string, data est une liste
+    var data = JSON.parse(this.responseText);
+
+    // boucle sur les pays
+    for ( n = 0; n < data.length; n++ ) {
+      // insertion d'un marqueur à la position du lieu,
+      // attachement d'une popup, capture de l'événement 'clic'
+      // ajout d'une propriété personnalisée au marqueur
+      L.marker([data[n].latitude,data[n].longitude]).addTo(map)
+       .bindPopup('Lieu = '+data[n].wp)
+       .addEventListener('click',OnMarkerClick)
+       .idnum = data[n].id;
+	   
+	   // ajout d'une option dans le select des pays
+	   
+	   let option = document.createElement('option');
+	   option.textContent = data[n].wp;
+	   option.value = data[n].id;
+	   select.appendChild(option);
+    }
+  };
+
+  // Envoi de la requête Ajax pour la récupération de la liste des pays d'asie
+  xhr.open('GET','/location',true);
+  xhr.send();
+}
+
+// Fonction appelée lors d'un clic sur un marqueur
+function OnMarkerClick (e) {
+    // affichage dans la zone 'description' du nom (reprise dans le popup)
+	// Le numéro du lieu est récupéré via la propriété personnalisée du marqueur
+	display_info(e.target.idnum, e.target.getPopup().getContent());
+}
+
+function display_info(id,description) {
+  // objet pour l'envoi d'une requête Ajax
+  var xhr = new XMLHttpRequest();
+
+  console.log('display_info',id,description);
+  
+  // fonction appelée lorsque la réponse à la requête (description d'un lieu insolite) sera arrivée
+  xhr.onload = function() {
+    // transformation des données renvoyées par le serveur
+    // responseText est du type string, data est un objet
+    var data = JSON.parse(this.responseText);
+
+    console.log('display_info ajax response',data);
+    console.log(description)
+    // données récupérées par l'appel au serveur
+    window.description.innerHTML =  '<b><i>' + description + '</i></b><br>'+ 
+        'Nom complet :' +data.name+'<br>'+
+	'Capitale : ' + data.capital+'<br>'+
+	'Coordonnées : ('+data.latitude+';'+data.longitude+')'+'<br>'+
+	'Monnaie(s) officielle(s) : '+data.currency +'<br>'+
+	'Superficie (en km2) : '+data.area +'<br>'+
+	'Côté(s) pour la conduite :' +data.drive_side +'<br>' +
+	'Domaine de premier niveau national :'+data.cctld+'<br>'+
+	'Indicatif téléphonique international :'+data.calling_code+'<br>'+
+	'Pour plus d \'informations :' +'<i>' + "<a href='https://wikipedia.org/wiki/"+data.wp+"'>"+'lien wikipedia'+"</a>"+ '</i>'+'<br>'+
+	'<br>'+
+	'<br>'+
+	'<figure>'+ "<img src='flags/"+data.image+"'" + "alt='drapeau du pays'>"+'</figure>';
+    console.log(window.description.innerHTML);
+  };
+
+  
+  // Envoi de la requête Ajax pour la récupération de la description du lieu de numéro idnum
+  xhr.open('GET','/description/'+id,true);
+  xhr.send();
+}
+
+function choix_pays() {
+
+  let id_pays = window.selection_pays.value;
+  display_info(id_pays,'')
+}
+
+
+</script>
+</body>
+
