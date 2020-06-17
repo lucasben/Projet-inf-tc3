@@ -30,7 +30,7 @@
 <script>
 
 // Création d'une carte dans la balise div "map" créée plus haut
-var map = L.map('map').setView([-20,210],2);
+var map = L.map('map').setView([-20,50],2);
 
 // Couche de dalles OpenStreetMap
 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -54,7 +54,7 @@ function load_data () {
       // insertion d'un marqueur sur la capitale,
       // attachement d'une popup, capture de l'événement 'clic'
       L.marker([data[n].latitude,data[n].longitude]).addTo(map)
-       .bindPopup('Lieu = '+data[n].wp)
+       .bindPopup('Pays : '+data[n].wp)
        .addEventListener('click',OnMarkerClick)
        .idnum = data[n].id;
 	   
@@ -97,20 +97,18 @@ function display_info(id,description) {
         'Nom complet :' +data.name+'<br>'+
 	'Capitale : ' + data.capital+'<br>'+
 	'Coordonnées : ('+data.latitude+';'+data.longitude+')'+'<br>'+
-	'Monnaie(s) officielle(s) : '+data.currency +'<br>'+
-	'Superficie (en km2) : '+data.area +'<br>'+
-	'Côté(s) pour la conduite :' +data.drive_side +'<br>' +
-	'Domaine de premier niveau national :'+data.cctld+'<br>'+
-	'Indicatif téléphonique international :'+data.calling_code+'<br>'+
-	'Pour plus d \'informations :' +'<i>' + "<a href='https://wikipedia.org/wiki/"+data.wp+"'>"+'lien wikipedia'+"</a>"+ '</i>'+'<br>'+
+	'Continent : '+data.continent +'<br>'+
 	'<br>'+
 	'<br>'+
-	'<figure>'+ "<img src='flags/"+data.image+"'" + "alt='drapeau du pays'>"+'</figure>';
+	'Pour plus d \'informations : ' +'<i>' + "<a href='https://wikipedia.org/wiki/"+data.wp+"'>"+'Wikipedia'+"</a>"+ '</i>'+'<br>'+
+	'<br>'+
+	'<br>'+
+	'<figure>'+ "<img src='flags/"+data.flag+"'" + "alt='drapeau du pays'>"+'</figure>';
     console.log(window.description.innerHTML);
   };
 
   
-  // Envoi de la requête Ajax pour récupération de la description du lieu de numéro id
+  // Envoi de la requête Ajax pour récupération de la description du lieu de numéro idnum
   xhr.open('GET','/description/'+id,true);
   xhr.send();
 }
